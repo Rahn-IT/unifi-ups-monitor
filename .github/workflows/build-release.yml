@@ -1,0 +1,61 @@
+name: Build Linux release
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "v*"
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Install Rust target and musl tools
+        run: |
+          rustup target add x86_64-unknown-linux-musl
+          sudo apt-get update
+          sudo apt-get install --yes musl-tools
+
+      - name: Test
+        run: cargo test --locked
+
+      - name: Build static Linux binary
+        run: cargo build --release --locked --target x86_64-unknown-linux-musl
+
+      - name: Create release archive
+        run: |
+          mkdir -p dist/package/scripts
+          cp target/x86_64-unknown-linux-musl/release/unifi-ups-monitor dist/package/
+          cp config.example.toml README.md dist/package/
+          cp scripts/install.sh scripts/unifi-ups-monitor.service dist/package/scripts/
+          tar -C dist/package -czf dist/unifi-ups-monitor-linux-x86_64.tar.gz .
+          sha256sum dist/unifi-ups-monitor-linux-x86_64.tar.gz > dist/unifi-ups-monitor-linux-x86_64.tar.gz.sha256
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: unifi-ups-monitor-linux-x86_64
+          path: |
+            dist/unifi-ups-monitor-linux-x86_64.tar.gz
+            dist/unifi-ups-monitor-linux-x86_64.tar.gz.sha256
+
+      - name: Create GitHub release
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${GITHUB_REF_NAME}" \
+            dist/unifi-ups-monitor-linux-x86_64.tar.gz \
+            dist/unifi-ups-monitor-linux-x86_64.tar.gz.sha256 \
+            --generate-notes \
+            --title "${GITHUB_REF_NAME}"

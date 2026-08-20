@@ -15,18 +15,22 @@ fi
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
-if ! command -v cargo >/dev/null 2>&1; then
-  echo "cargo is required on the target machine."
-  exit 1
-fi
-
 mkdir -p "${INSTALL_ROOT}"
 mkdir -p "${CONFIG_DIR}"
 
-echo "Building release binary..."
-cargo build --release --manifest-path "${PROJECT_ROOT}/Cargo.toml"
+if [[ -x "${PROJECT_ROOT}/${APP_NAME}" ]]; then
+  echo "Installing prebuilt release binary..."
+  install -m 0755 "${PROJECT_ROOT}/${APP_NAME}" "${BIN_PATH}"
+else
+  if ! command -v cargo >/dev/null 2>&1; then
+    echo "cargo is required when installing from source."
+    exit 1
+  fi
 
-install -m 0755 "${PROJECT_ROOT}/target/release/${APP_NAME}" "${BIN_PATH}"
+  echo "Building release binary..."
+  cargo build --release --locked --manifest-path "${PROJECT_ROOT}/Cargo.toml"
+  install -m 0755 "${PROJECT_ROOT}/target/release/${APP_NAME}" "${BIN_PATH}"
+fi
 
 if [[ ! -f "${CONFIG_DIR}/config.toml" ]]; then
   install -m 0644 "${PROJECT_ROOT}/config.example.toml" "${CONFIG_DIR}/config.toml"

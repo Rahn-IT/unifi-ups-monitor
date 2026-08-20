@@ -34,13 +34,32 @@ require_on_battery = true
 
 ## Install on the Debian/PBS host
 
-1. Copy this folder to the target host.
+### Install a GitHub release
+
+Download `unifi-ups-monitor-linux-x86_64.tar.gz` from the repository's Releases
+page, extract it on the Debian/PBS host, and run:
+
+```bash
+tar -xzf unifi-ups-monitor-linux-x86_64.tar.gz
+sudo ./scripts/install.sh
+```
+
+The release contains a prebuilt static Linux binary, so Rust is not required on
+the target server. Adjust `/etc/unifi-ups-monitor/config.toml` after installation.
+
+### Install from source
+
+1. Copy or clone this repository to the target host.
 2. Adjust `config.example.toml` or place your own config at `/etc/unifi-ups-monitor/config.toml`.
 3. Run:
 
 ```bash
 sudo ./scripts/install.sh
 ```
+
+Every push to `main` also creates a temporary download under the GitHub Actions
+run's Artifacts section. Pushing a version tag such as `v0.1.0` creates a
+permanent GitHub Release with the archive and its SHA-256 checksum.
 
 If `/root/.forward` exists, the service sends the shutdown reason to `root` using
 the system `mail` command. If the file is absent, notification is silently skipped.
