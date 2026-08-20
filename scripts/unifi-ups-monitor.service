@@ -1,0 +1,13 @@
+[Unit]
+Description=UniFi UPS monitor with runtime-based shutdown
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/unifi-ups-monitor /etc/unifi-ups-monitor/config.toml
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
