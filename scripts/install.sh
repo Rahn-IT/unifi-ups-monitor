@@ -33,7 +33,7 @@ else
 fi
 
 if [[ ! -f "${CONFIG_DIR}/config.toml" ]]; then
-  install -m 0644 "${PROJECT_ROOT}/config.example.toml" "${CONFIG_DIR}/config.toml"
+  install -m 0600 "${PROJECT_ROOT}/config.example.toml" "${CONFIG_DIR}/config.toml"
 else
   echo "Keeping existing config at ${CONFIG_DIR}/config.toml"
 fi
@@ -41,9 +41,11 @@ fi
 install -m 0644 "${PROJECT_ROOT}/scripts/${APP_NAME}.service" "${SERVICE_PATH}"
 
 systemctl daemon-reload
-systemctl enable --now "${APP_NAME}.service"
+systemctl enable "${APP_NAME}.service"
 
 echo
 echo "Installed ${APP_NAME}."
 echo "Config: ${CONFIG_DIR}/config.toml"
-echo "Service: systemctl status ${APP_NAME}.service"
+echo "Edit the config, then start the service with:"
+echo "  systemctl restart ${APP_NAME}.service"
+echo "  systemctl status ${APP_NAME}.service"

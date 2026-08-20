@@ -38,8 +38,10 @@ jobs:
           cp target/x86_64-unknown-linux-musl/release/unifi-ups-monitor dist/package/
           cp config.example.toml README.md dist/package/
           cp scripts/install.sh scripts/unifi-ups-monitor.service dist/package/scripts/
+          chmod +x dist/package/unifi-ups-monitor dist/package/scripts/install.sh
           tar -C dist/package -czf dist/unifi-ups-monitor-linux-x86_64.tar.gz .
-          sha256sum dist/unifi-ups-monitor-linux-x86_64.tar.gz > dist/unifi-ups-monitor-linux-x86_64.tar.gz.sha256
+          cd dist
+          sha256sum unifi-ups-monitor-linux-x86_64.tar.gz > unifi-ups-monitor-linux-x86_64.tar.gz.sha256
 
       - name: Upload workflow artifact
         uses: actions/upload-artifact@v7

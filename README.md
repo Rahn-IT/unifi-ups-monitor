@@ -1,6 +1,6 @@
 # UniFi UPS Monitor
 
-Small Rust service that polls a UniFi NUT endpoint via `upsc` and triggers a local shutdown when the configured battery runtime or charge threshold is reached.
+Small Rust service that connects directly to a UniFi NUT endpoint and triggers a local shutdown when the configured battery runtime or charge threshold is reached. It does not require `upsc` or other NUT client packages.
 
 ## Why this exists
 
@@ -17,14 +17,19 @@ The UniFi UPS NUT server exposes status data, but it does not behave like a full
 - `Cargo.toml`: Rust package definition
 - `src/main.rs`: monitor loop
 - `config.example.toml`: example configuration
+- `install.sh`: bootstrap installer for the latest GitHub release
 - `scripts/install.sh`: Linux installation helper
 - `scripts/unifi-ups-monitor.service`: `systemd` service unit
 
 ## Example config
 
 ```toml
-ups_name = "unifi@192.0.2.10:3493"
-upsc_path = "/usr/bin/upsc"
+nut_host = "192.0.2.10"
+nut_port = 3493
+nut_ups_name = "unifi"
+nut_username = "pbs"
+nut_password = "CHANGE_ME"
+connection_timeout_seconds = 5
 poll_interval_seconds = 15
 runtime_shutdown_seconds = 600
 charge_shutdown_percent = 25
@@ -34,18 +39,26 @@ require_on_battery = true
 
 ## Install on the Debian/PBS host
 
-### Install a GitHub release
+### Install the latest GitHub release
 
-Download `unifi-ups-monitor-linux-x86_64.tar.gz` from the repository's Releases
-page, extract it on the Debian/PBS host, and run:
+Run this command on the Debian/PBS host:
 
 ```bash
-tar -xzf unifi-ups-monitor-linux-x86_64.tar.gz
-sudo ./scripts/install.sh
+curl -fsSL https://raw.githubusercontent.com/Rahn-IT/unifi-ups-monitor/main/install.sh | sudo bash
 ```
 
-The release contains a prebuilt static Linux binary, so Rust is not required on
-the target server. Adjust `/etc/unifi-ups-monitor/config.toml` after installation.
+The bootstrap script downloads the latest prebuilt static Linux release, verifies
+its SHA-256 checksum, installs the binary and systemd unit, and creates a standard
+configuration if none exists. Rust and `upsc` are not required on the server.
+
+Then edit and start the service:
+
+```bash
+nano /etc/unifi-ups-monitor/config.toml
+systemctl restart unifi-ups-monitor
+systemctl status unifi-ups-monitor
+journalctl -u unifi-ups-monitor -f
+```
 
 ### Install from source
 

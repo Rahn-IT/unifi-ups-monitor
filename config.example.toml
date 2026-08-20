@@ -1,5 +1,9 @@
-ups_name = "unifi@192.0.2.10:3493"
-upsc_path = "/usr/bin/upsc"
+nut_host = "192.0.2.10"
+nut_port = 3493
+nut_ups_name = "unifi"
+nut_username = "pbs"
+nut_password = "CHANGE_ME"
+connection_timeout_seconds = 5
 poll_interval_seconds = 15
 runtime_shutdown_seconds = 600
 charge_shutdown_percent = 25
