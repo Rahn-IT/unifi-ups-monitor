@@ -35,6 +35,8 @@ runtime_shutdown_seconds = 600
 charge_shutdown_percent = 25
 shutdown_command = "/sbin/shutdown -h now"
 require_on_battery = true
+notification_queue_command = "/usr/sbin/sendmail -q"
+notification_wait_seconds = 15
 ```
 
 ## Install on the Debian/PBS host
@@ -76,8 +78,10 @@ GitHub Actions run's Artifacts section. Pushing a version tag such as `v0.2.1`
 creates a permanent GitHub Release containing only the executable.
 
 If `/root/.forward` exists, the service sends the shutdown reason to `root` using
-the system `mail` command. If the file is absent, notification is silently skipped.
-A mail delivery error is logged but does not prevent the shutdown.
+the system `mail` command. It then triggers the mail queue and waits for the
+configured delivery window before shutting down. If the file is absent,
+notification is silently skipped. A mail delivery error is logged but does not
+prevent the shutdown.
 
 ## Test without shutting down
 

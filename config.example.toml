@@ -9,3 +9,5 @@ runtime_shutdown_seconds = 600
 charge_shutdown_percent = 25
 shutdown_command = "/sbin/shutdown -h now"
 require_on_battery = true
+notification_queue_command = "/usr/sbin/sendmail -q"
+notification_wait_seconds = 15

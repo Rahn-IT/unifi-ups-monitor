@@ -24,6 +24,8 @@ struct Config {
     charge_shutdown_percent: Option<f64>,
     shutdown_command: Option<String>,
     require_on_battery: Option<bool>,
+    notification_queue_command: Option<String>,
+    notification_wait_seconds: Option<u64>,
 }
 
 #[derive(Debug)]
@@ -192,7 +194,7 @@ fn run() -> Result<(), String> {
                     if should_shutdown(&config, &snapshot) {
                         let reason = shutdown_reason(&config, &snapshot);
                         println!("shutdown condition reached: {reason}");
-                        if let Err(error) = notify_shutdown(&reason) {
+                        if let Err(error) = notify_shutdown(&config, &reason) {
                             eprintln!("warning: failed to send shutdown notification: {error}");
                         }
                         run_shutdown(&config)?;
@@ -335,7 +337,7 @@ fn shutdown_reason(config: &Config, snapshot: &UpsSnapshot) -> String {
     "configured threshold matched".to_string()
 }
 
-fn notify_shutdown(reason: &str) -> Result<(), String> {
+fn notify_shutdown(config: &Config, reason: &str) -> Result<(), String> {
     if !Path::new("/root/.forward").exists() {
         return Ok(());
     }
@@ -358,10 +360,39 @@ fn notify_shutdown(reason: &str) -> Result<(), String> {
     let status = child
         .wait()
         .map_err(|error| format!("failed to wait for mail: {error}"))?;
+    if !status.success() {
+        return Err(format!("mail exited with {status}"));
+    }
+
+    let queue_command = config
+        .notification_queue_command
+        .as_deref()
+        .unwrap_or("/usr/sbin/sendmail -q");
+    if let Err(error) = run_command(queue_command) {
+        eprintln!("warning: failed to flush mail queue: {error}");
+    }
+
+    let wait_seconds = config.notification_wait_seconds.unwrap_or(15);
+    if wait_seconds > 0 {
+        println!("waiting {wait_seconds}s for mail delivery before shutdown");
+        thread::sleep(Duration::from_secs(wait_seconds));
+    }
+    Ok(())
+}
+
+fn run_command(command: &str) -> Result<(), String> {
+    let parts = command.split_whitespace().collect::<Vec<_>>();
+    let (program, args) = parts
+        .split_first()
+        .ok_or_else(|| "command is empty".to_string())?;
+    let status = Command::new(program)
+        .args(args)
+        .status()
+        .map_err(|error| format!("failed to execute '{command}': {error}"))?;
     if status.success() {
         Ok(())
     } else {
-        Err(format!("mail exited with {status}"))
+        Err(format!("command '{command}' exited with {status}"))
     }
 }
 
@@ -370,19 +401,7 @@ fn run_shutdown(config: &Config) -> Result<(), String> {
         .shutdown_command
         .as_deref()
         .unwrap_or("/sbin/shutdown -h now");
-    let parts = command.split_whitespace().collect::<Vec<_>>();
-    let (program, args) = parts
-        .split_first()
-        .ok_or_else(|| "shutdown_command is empty".to_string())?;
-    let status = Command::new(program)
-        .args(args)
-        .status()
-        .map_err(|error| format!("failed to execute shutdown command '{command}': {error}"))?;
-    if status.success() {
-        Ok(())
-    } else {
-        Err(format!("shutdown command '{command}' exited with {status}"))
-    }
+    run_command(command).map_err(|error| format!("shutdown failed: {error}"))
 }
 
 #[cfg(test)]
