@@ -2,6 +2,16 @@
 
 Small Rust service that connects directly to a UniFi NUT endpoint and triggers a local shutdown when the configured battery runtime or charge threshold is reached. It does not require `upsc` or other NUT client packages.
 
+## ⚠️WARNING⚠️
+
+> [!WARNING]
+> **This repository is heavily vibe coded.**
+>
+> It's a very simple app and we use it ourselves, but I still feel like it should be openly disclosed in my opinion
+> it will always influence code quality.
+>
+> Feel free to check out the code if you're unsure
+
 ## Why this exists
 
 The UniFi UPS NUT server exposes status data, but it does not behave like a full read/write NUT implementation for `FSD`-driven shutdown. This service uses local policy instead:
