@@ -8,7 +8,7 @@ Small Rust service that connects directly to a UniFi NUT endpoint and triggers a
 > **This repository is heavily vibe coded.**
 >
 > It's a very simple app and we use it ourselves, but I still feel like it should be openly disclosed in my opinion
-> it will always influence code quality.
+> as it will always influence code quality.
 >
 > Feel free to check out the code if you're unsure
 
