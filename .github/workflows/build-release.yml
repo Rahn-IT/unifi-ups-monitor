@@ -32,24 +32,18 @@ jobs:
       - name: Build static Linux binary
         run: cargo build --release --locked --target x86_64-unknown-linux-musl
 
-      - name: Create release archive
+      - name: Prepare executable
         run: |
-          mkdir -p dist/package/scripts
-          cp target/x86_64-unknown-linux-musl/release/unifi-ups-monitor dist/package/
-          cp config.example.toml README.md dist/package/
-          cp scripts/install.sh scripts/unifi-ups-monitor.service dist/package/scripts/
-          chmod +x dist/package/unifi-ups-monitor dist/package/scripts/install.sh
-          tar -C dist/package -czf dist/unifi-ups-monitor-linux-x86_64.tar.gz .
-          cd dist
-          sha256sum unifi-ups-monitor-linux-x86_64.tar.gz > unifi-ups-monitor-linux-x86_64.tar.gz.sha256
+          mkdir -p dist
+          install -m 0755 \
+            target/x86_64-unknown-linux-musl/release/unifi-ups-monitor \
+            dist/unifi-ups-monitor-linux-x86_64
 
       - name: Upload workflow artifact
         uses: actions/upload-artifact@v7
         with:
           name: unifi-ups-monitor-linux-x86_64
-          path: |
-            dist/unifi-ups-monitor-linux-x86_64.tar.gz
-            dist/unifi-ups-monitor-linux-x86_64.tar.gz.sha256
+          path: dist/unifi-ups-monitor-linux-x86_64
 
       - name: Create GitHub release
         if: startsWith(github.ref, 'refs/tags/v')
@@ -57,7 +51,6 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release create "${GITHUB_REF_NAME}" \
-            dist/unifi-ups-monitor-linux-x86_64.tar.gz \
-            dist/unifi-ups-monitor-linux-x86_64.tar.gz.sha256 \
+            dist/unifi-ups-monitor-linux-x86_64 \
             --generate-notes \
             --title "${GITHUB_REF_NAME}"

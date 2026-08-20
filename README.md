@@ -47,9 +47,10 @@ Run this command on the Debian/PBS host:
 curl -fsSL https://raw.githubusercontent.com/Rahn-IT/unifi-ups-monitor/main/install.sh | sudo bash
 ```
 
-The bootstrap script downloads the latest prebuilt static Linux release, verifies
-its SHA-256 checksum, installs the binary and systemd unit, and creates a standard
-configuration if none exists. Rust and `upsc` are not required on the server.
+The bootstrap script downloads the latest prebuilt static Linux executable. It
+loads the example configuration and systemd unit directly from GitHub, installs
+all three files, and creates the configuration only if none exists. Rust and
+`upsc` are not required on the server.
 
 Then edit and start the service:
 
@@ -70,9 +71,9 @@ journalctl -u unifi-ups-monitor -f
 sudo ./scripts/install.sh
 ```
 
-Every push to `main` also creates a temporary download under the GitHub Actions
-run's Artifacts section. Pushing a version tag such as `v0.1.0` creates a
-permanent GitHub Release with the archive and its SHA-256 checksum.
+Every push to `main` also creates a temporary executable download under the
+GitHub Actions run's Artifacts section. Pushing a version tag such as `v0.2.1`
+creates a permanent GitHub Release containing only the executable.
 
 If `/root/.forward` exists, the service sends the shutdown reason to `root` using
 the system `mail` command. If the file is absent, notification is silently skipped.
