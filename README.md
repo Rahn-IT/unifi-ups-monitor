@@ -12,6 +12,22 @@ Small Rust service that connects directly to a UniFi NUT endpoint and triggers a
 >
 > Feel free to check out the code if you're unsure
 
+## Version 0.3.0
+
+- Safety shutdown after 300 seconds of NUT communication loss by default;
+  configure `nut_connection_loss_shutdown_seconds`, or set it to `0` to disable.
+  Existing configurations also receive this default.
+- Persistent battery installation date and daily replacement reminders after
+  1,095 days, configurable with `battery_service_life_days`.
+- One immediate RB replacement alert per continuous reported condition.
+- `battery-reset` command after replacement; stop the service before resetting
+  and start it again afterwards (see the instructions below).
+
+To update an existing installation, run the bootstrap installer below again.
+It preserves your configuration; then restart `unifi-ups-monitor`. The battery
+installation date is initialized on the first start with this version, so it
+initially reflects the upgrade date for existing batteries.
+
 ## Why this exists
 
 The UniFi UPS NUT server exposes status data, but it does not behave like a full read/write NUT implementation for `FSD`-driven shutdown. This service uses local policy instead:
@@ -114,7 +130,7 @@ sudo systemctl enable --now unifi-ups-monitor
 ```
 
 Every push to `main` also creates a temporary executable download under the
-GitHub Actions run's Artifacts section. Pushing a version tag such as `v0.2.1`
+GitHub Actions run's Artifacts section. Pushing a version tag such as `v0.3.0`
 creates a permanent GitHub Release containing only the executable.
 
 If `/root/.forward` exists, the service sends its shutdown and battery alerts to
