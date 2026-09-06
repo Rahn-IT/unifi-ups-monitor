@@ -5,9 +5,14 @@ nut_username = "pbs"
 nut_password = "CHANGE_ME"
 connection_timeout_seconds = 5
 poll_interval_seconds = 15
+nut_connection_loss_shutdown_seconds = 300
 runtime_shutdown_seconds = 600
 charge_shutdown_percent = 25
 shutdown_command = "/sbin/shutdown -h now"
 require_on_battery = true
 notification_queue_command = "/usr/sbin/sendmail -q"
 notification_wait_seconds = 15
+# Stored persistently so reminders survive restarts. The directory is created automatically.
+battery_state_path = "/var/lib/unifi-ups-monitor/battery-state.toml"
+# Three years by default; use a shorter interval only for testing or a known battery policy.
+battery_service_life_days = 1095

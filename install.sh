@@ -8,6 +8,7 @@ RELEASE_BASE="https://github.com/${REPOSITORY}/releases/latest/download"
 RAW_BASE="https://raw.githubusercontent.com/${REPOSITORY}/main"
 CONFIG_DIR="/etc/${APP_NAME}"
 CONFIG_PATH="${CONFIG_DIR}/config.toml"
+STATE_DIR="/var/lib/${APP_NAME}"
 BIN_PATH="/usr/local/bin/${APP_NAME}"
 SERVICE_PATH="/etc/systemd/system/${APP_NAME}.service"
 
@@ -44,6 +45,7 @@ curl --fail --show-error --location \
 
 install -m 0755 "${TEMP_DIR}/${EXECUTABLE}" "${BIN_PATH}"
 install -d -m 0755 "${CONFIG_DIR}"
+install -d -m 0755 "${STATE_DIR}"
 if [[ ! -f "${CONFIG_PATH}" ]]; then
   install -m 0600 "${TEMP_DIR}/config.example.toml" "${CONFIG_PATH}"
 else
