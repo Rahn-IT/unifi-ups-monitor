@@ -12,6 +12,12 @@ Small Rust service that connects directly to a UniFi NUT endpoint and triggers a
 >
 > Feel free to check out the code if you're unsure
 
+## Version 0.3.1
+
+The installer now safely adds missing new options to existing configurations,
+with a backup and without overwriting custom values. The monitor features below
+were introduced in version 0.3.0.
+
 ## Version 0.3.0
 
 - Safety shutdown after 300 seconds of NUT communication loss by default;
@@ -24,7 +30,7 @@ Small Rust service that connects directly to a UniFi NUT endpoint and triggers a
   and start it again afterwards (see the instructions below).
 
 To update an existing installation, run the bootstrap installer below again.
-It preserves your configuration; then restart `unifi-ups-monitor`. The battery
+It preserves your values and adds missing new options; then restart `unifi-ups-monitor`. The battery
 installation date is initialized on the first start with this version, so it
 initially reflects the upgrade date for existing batteries.
 
@@ -99,8 +105,8 @@ curl -fsSL https://raw.githubusercontent.com/Rahn-IT/unifi-ups-monitor/main/inst
 
 The bootstrap script downloads the latest prebuilt static Linux executable. It
 loads the example configuration and systemd unit directly from GitHub, installs
-all three files, and creates the configuration only if none exists. Rust and
-`upsc` are not required on the server.
+all three files, and creates the configuration if none exists. Rust and
+`upsc` are not required on the server. Python 3.11 or newer is required for configuration migration.
 
 Then edit and start the service:
 
@@ -110,6 +116,21 @@ systemctl restart unifi-ups-monitor
 systemctl status unifi-ups-monitor
 journalctl -u unifi-ups-monitor -f
 ```
+
+### Updating an existing configuration
+
+Run the same bootstrap command again, then restart the service. Starting with
+v0.3.1, the installer preserves existing values, comments and custom settings.
+It adds only missing `nut_connection_loss_shutdown_seconds`, `battery_state_path`,
+`battery_service_life_days`, and `notification_queue_command` options using the
+example defaults. Explicit values such as `0` remain unchanged. Older omitted
+battery shutdown thresholds are not enabled by the migration.
+
+Before changing a configuration it creates a private `config.toml.bak.*` backup
+in the same directory. Invalid TOML stops installation before the executable is
+replaced. Running the installer again creates no duplicate entries or backup
+when all four options are already present. New installations receive the full
+example configuration. The installer does not restart the service automatically.
 
 ### Install from source
 
@@ -183,3 +204,5 @@ Run cargo fmt --check, cargo test --offline --locked, cargo build --offline --lo
 and cargo clippy --offline --locked --all-targets -- -D warnings.
 The tests use simulated time, a local NUT test server, captured notifications,
 and temporary battery-state files; they do not send mail or shut down the host.
+
+Installer migration checks: python3 scripts/test_installer.py (Python 3.11+).

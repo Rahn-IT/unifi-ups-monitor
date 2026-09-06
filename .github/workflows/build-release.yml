@@ -26,6 +26,11 @@ jobs:
           sudo apt-get update
           sudo apt-get install --yes musl-tools
 
+      - name: Test installer
+        run: |
+          bash -n install.sh
+          python3 scripts/test_installer.py
+
       - name: Test
         run: cargo test --locked
 
